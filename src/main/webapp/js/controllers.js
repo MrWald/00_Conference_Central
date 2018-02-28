@@ -5,7 +5,7 @@
  *
  * @type {conferenceApp|*|{}}
  */
-var conferenceApp = conferenceApp || {};
+var conferenceApp = conferenceApp || { controllers:null };
 
 /**
  * @ngdoc module
@@ -265,7 +265,7 @@ conferenceApp.controllers.controller('ShowConferenceCtrl', function ($scope, $lo
         {enumValue: 'TOPIC', displayName: 'Topic'},
         {enumValue: 'MONTH', displayName: 'Start month'},
         {enumValue: 'MAX_ATTENDEES', displayName: 'Max Attendees'}
-    ]
+    ];
 
     /**
      * Possible operators.
@@ -371,7 +371,7 @@ conferenceApp.controllers.controller('ShowConferenceCtrl', function ($scope, $lo
      */
     $scope.pagination.isDisabled = function (event) {
         return angular.element(event.target).hasClass('disabled');
-    }
+    };
 
     /**
      * Adds a filter and set the default value.
@@ -423,7 +423,7 @@ conferenceApp.controllers.controller('ShowConferenceCtrl', function ($scope, $lo
     $scope.queryConferencesAll = function () {
         var sendFilters = {
             filters: []
-        }
+        };
         for (var i = 0; i < $scope.filters.length; i++) {
             var filter = $scope.filters[i];
             if (filter.field && filter.operator && filter.value) {
@@ -460,7 +460,7 @@ conferenceApp.controllers.controller('ShowConferenceCtrl', function ($scope, $lo
                     $scope.submitted = true;
                 });
             });
-    }
+    };
 
     /**
      * Invokes the conference.getConferencesCreated method.
@@ -731,7 +731,7 @@ conferenceApp.controllers.controller('RootCtrl', function ($scope, $location, oa
     $scope.initSignInButton = function () {
         gapi.signin.render('signInButton', {
             'callback': function () {
-                jQuery('#signInButton button').attr('disabled', 'true').css('cursor', 'default');
+                jQuery('#signInButton').find('button').attr('disabled', 'true').css('cursor', 'default');
                 if (gapi.auth.getToken() && gapi.auth.getToken().access_token) {
                     $scope.$apply(function () {
                         oauth2Provider.signedIn = true;
@@ -775,7 +775,7 @@ conferenceApp.controllers.controller('OAuth2LoginModalCtrl',
     function ($scope, $modalInstance, $rootScope, oauth2Provider) {
         $scope.singInViaModal = function () {
             oauth2Provider.signIn(function () {
-                gapi.client.oauth2.userinfo.get().execute(function (resp) {
+                gapi.client.oauth2.userinfo.get(null).execute(function (resp) {
                     $scope.$root.$apply(function () {
                         oauth2Provider.signedIn = true;
                         $scope.$root.alertStatus = 'success';
