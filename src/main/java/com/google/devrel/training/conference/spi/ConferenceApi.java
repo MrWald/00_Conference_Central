@@ -9,8 +9,14 @@ import com.google.api.server.spi.response.ConflictException;
 import com.google.api.server.spi.response.ForbiddenException;
 import com.google.api.server.spi.response.NotFoundException;
 import com.google.api.server.spi.response.UnauthorizedException;
+import com.google.appengine.api.memcache.MemcacheService;
+import com.google.appengine.api.memcache.MemcacheServiceFactory;
+import com.google.appengine.api.taskqueue.Queue;
+import com.google.appengine.api.taskqueue.QueueFactory;
+import com.google.appengine.api.taskqueue.TaskOptions;
 import com.google.appengine.api.users.User;
 import com.google.devrel.training.conference.Constants;
+import com.google.devrel.training.conference.domain.Announcement;
 import com.google.devrel.training.conference.domain.Conference;
 import com.google.devrel.training.conference.domain.Profile;
 import com.google.devrel.training.conference.form.ConferenceForm;
@@ -167,6 +173,10 @@ public class ConferenceApi {
 
         OfyService.ofy().save().entities(profile, conference).now();
 
+        Queue queue = QueueFactory.getDefaultQueue();
+        queue.add(TaskOptions.Builder.withUrl("/sendMail").param("email", user.getEmail()).param("conferenceInfo", conference.toString()));
+
+
         return conference;
     }
 
@@ -208,10 +218,7 @@ public class ConferenceApi {
     )
     public List<Conference> getConferencesFiltered(){
         Query<Conference> query = OfyService.ofy().load().type(Conference.class);
-        query = query.filter("maxAttendees >",10);
-        query = query.filter("city =", "London");
-        query = query.filter("topics =", "Web Technologies");
-        query = query.filter("month =", 1) .order("maxAttendees").order("name");
+        query = query.filter("seatsAvailable <",5);
         return query.list();
     }
 
@@ -474,5 +481,17 @@ public Collection<Conference> getConferencesToAttend(final User user)
         return conferences;
         }
 
+@ApiMethod(
+        name="getAnnouncement",
+        path = "announcement",
+        httpMethod = HttpMethod.GET
+)
+public Announcement getAnnouncement(){
+    Object obj = MemcacheServiceFactory.getMemcacheService().get(Constants.MEMCACHE_ANNOUNCEMENTS_KEY) ;
+    if(obj!=null)
+        return new Announcement((String)obj);
+    else
+        return null;
+}
 
 }
